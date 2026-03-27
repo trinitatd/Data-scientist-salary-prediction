@@ -185,8 +185,6 @@ def patch_simple_imputer_compat(model) -> int:
 	patched_count = 0
 	for estimator in _walk_estimators(model):
 		if estimator.__class__.__name__ == "SimpleImputer" and not hasattr(estimator, "_fill_dtype"):
-			# Compatibility for models serialized with a different sklearn version.
-			# _fill_dtype must be a valid dtype (not None) for newer sklearn code paths.
 			if hasattr(estimator, "statistics_") and getattr(estimator, "statistics_") is not None:
 				estimator._fill_dtype = getattr(estimator, "statistics_").dtype
 			else:
@@ -217,8 +215,21 @@ def format_country_code(code: str) -> str:
 
 def main() -> None:
 	st.set_page_config(page_title="Salary Predictor", layout="centered")
-	st.title("Data Science Salary Predictor")
-	st.caption("Enter role details and get an estimated salary from your trained model.")
+	st.markdown("## Data Science Salary Predictor")
+	st.caption(
+		"Estimate annual compensation for data science roles using key job and location details."
+	)
+
+	with st.sidebar:
+		st.markdown("### About this app")
+		st.write(
+			"This Data Science Salary Predictor uses a Linear Regression model (R² ≈ 0.83) trained on real-world "
+        	"salary datasets to estimate compensation for various roles.\n\n"
+        	"Users can input details such as experience level, job title, company size, and work setting to receive "
+        	"an instant salary prediction.\n\n"
+        	"This project demonstrates an end-to-end machine learning pipeline, including data preprocessing, "
+        	"model training, evaluation, and deployment using Streamlit."
+		)
 
 
 	try:
@@ -237,49 +248,65 @@ def main() -> None:
 	employee_residence_options = dropdown_options["employee_residence"]
 	company_location_options = dropdown_options["company_location"]
 
+	st.info("Model: Linear Regression | Performance: R² ≈ 0.83")
+
+	with st.expander("How it works"):
+		st.write(
+			"The model uses supervised learning (Linear Regression) trained on historical "
+			"data science salary records. It estimates salary from the selected features: "
+			"work year, experience level, employment type, job title, employee residence, "
+			"remote ratio, company location, and company size."
+		)
+
 
 
 
 	with st.form("prediction_form"):
 		work_year_default_index = work_year_options.index(2023) if 2023 in work_year_options else 0
-		work_year = st.selectbox("Work year", work_year_options, index=work_year_default_index)
-		experience_level = st.selectbox(
-			"Experience level",
-			VALID_EXPERIENCE_LEVELS,
-			index=2,
-			format_func=lambda code: EXPERIENCE_LEVEL_LABELS.get(code, code),
-		)
-		employment_type = st.selectbox(
-			"Employment type",
-			VALID_EMPLOYMENT_TYPES,
-			index=1,
-			format_func=lambda code: EMPLOYMENT_TYPE_LABELS.get(code, code),
-		)
+		left_col, right_col = st.columns(2)
+
+		with left_col:
+			work_year = st.selectbox("Work year", work_year_options, index=work_year_default_index)
+			experience_level = st.selectbox(
+				"Experience level",
+				VALID_EXPERIENCE_LEVELS,
+				index=2,
+				format_func=lambda code: EXPERIENCE_LEVEL_LABELS.get(code, code),
+			)
+			employment_type = st.selectbox(
+				"Employment type",
+				VALID_EMPLOYMENT_TYPES,
+				index=1,
+				format_func=lambda code: EMPLOYMENT_TYPE_LABELS.get(code, code),
+			)
+
 		job_title_default_index = job_title_options.index("Data Scientist") if "Data Scientist" in job_title_options else 0
-		job_title = st.selectbox("Job title", job_title_options, index=job_title_default_index)
 		employee_residence_default_index = (
 			employee_residence_options.index("US") if "US" in employee_residence_options else 0
 		)
-		employee_residence = st.selectbox(
-			"Employee residence (country code)",
-			employee_residence_options,
-			index=employee_residence_default_index,
-			format_func=format_country_code,
-		)
-		remote_ratio = st.selectbox("Remote ratio", VALID_REMOTE_RATIOS, index=2)
 		company_location_default_index = company_location_options.index("US") if "US" in company_location_options else 0
-		company_location = st.selectbox(
-			"Company location (country code)",
-			company_location_options,
-			index=company_location_default_index,
-			format_func=format_country_code,
-		)
-		company_size = st.selectbox(
-			"Company size",
-			VALID_COMPANY_SIZES,
-			index=1,
-			format_func=lambda code: COMPANY_SIZE_LABELS.get(code, code),
-		)
+
+		with right_col:
+			job_title = st.selectbox("Job title", job_title_options, index=job_title_default_index)
+			employee_residence = st.selectbox(
+				"Employee residence (country code)",
+				employee_residence_options,
+				index=employee_residence_default_index,
+				format_func=format_country_code,
+			)
+			remote_ratio = st.selectbox("Remote ratio", VALID_REMOTE_RATIOS, index=2)
+			company_location = st.selectbox(
+				"Company location (country code)",
+				company_location_options,
+				index=company_location_default_index,
+				format_func=format_country_code,
+			)
+			company_size = st.selectbox(
+				"Company size",
+				VALID_COMPANY_SIZES,
+				index=1,
+				format_func=lambda code: COMPANY_SIZE_LABELS.get(code, code),
+			)
 
 		submitted = st.form_submit_button("Predict salary")
 
@@ -302,6 +329,9 @@ def main() -> None:
 			st.dataframe(pd.DataFrame([sample]), use_container_width=True)
 		except Exception as exc:
 			st.error(f"Prediction failed: {exc}")
+
+	st.markdown("---")
+	st.caption("Built with Streamlit | By Group 4 - Data Science Project (S4 IT 2026 GECBH)")
 
 
 if __name__ == "__main__":
