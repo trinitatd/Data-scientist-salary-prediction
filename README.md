@@ -84,6 +84,7 @@ The prediction is based on the following features:
 ## 👩‍💻 Authors
 
 **Trinita T D | Gauri Smiju | Yasina Thasneem M | Vivek R**
+
 Built with Streamlit
 
 ---
