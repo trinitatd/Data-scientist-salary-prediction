@@ -213,6 +213,11 @@ def format_country_code(code: str) -> str:
 	return upper_code
 
 
+def filter_known_country_codes(codes: list[str]) -> list[str]:
+	known_codes = [code for code in codes if code in COUNTRY_CODE_LABELS]
+	return known_codes or ["US"]
+
+
 def main() -> None:
 	st.set_page_config(page_title="Salary Predictor", layout="centered")
 	st.markdown("## Data Science Salary Predictor")
@@ -245,8 +250,8 @@ def main() -> None:
 	dropdown_options = load_dropdown_options(DATA_PATH)
 	work_year_options = dropdown_options["work_year"]
 	job_title_options = dropdown_options["job_title"]
-	employee_residence_options = dropdown_options["employee_residence"]
-	company_location_options = dropdown_options["company_location"]
+	employee_residence_options = filter_known_country_codes(dropdown_options["employee_residence"])
+	company_location_options = filter_known_country_codes(dropdown_options["company_location"])
 
 	st.info("Model: Linear Regression | Performance: R² ≈ 0.83")
 
@@ -262,11 +267,25 @@ def main() -> None:
 
 
 	with st.form("prediction_form"):
-		work_year_default_index = work_year_options.index(2023) if 2023 in work_year_options else 0
+		dataset_min_year = int(min(work_year_options))
+		dataset_max_year = int(max(work_year_options))
+		min_selectable_year = dataset_min_year - 20
+		max_selectable_year = dataset_max_year + 20
+		work_year_default = 2023 if 2023 in work_year_options else int(work_year_options[0])
 		left_col, right_col = st.columns(2)
 
 		with left_col:
-			work_year = st.selectbox("Work year", work_year_options, index=work_year_default_index)
+			work_year = st.number_input(
+				"Work year",
+				min_value=min_selectable_year,
+				max_value=max_selectable_year,
+				value=work_year_default,
+				step=1,
+				help=(
+					f"Use + or - to choose a year from {min_selectable_year} to {max_selectable_year} "
+					f"(dataset range {dataset_min_year}-{dataset_max_year}, extended by +/- 20 years)."
+				),
+			)
 			experience_level = st.selectbox(
 				"Experience level",
 				VALID_EXPERIENCE_LEVELS,
