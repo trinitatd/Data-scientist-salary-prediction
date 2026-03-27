@@ -232,8 +232,7 @@ def main() -> None:
         	"salary datasets to estimate compensation for various roles.\n\n"
         	"Users can input details such as experience level, job title, company size, and work setting to receive "
         	"an instant salary prediction.\n\n"
-        	"This project demonstrates an end-to-end machine learning pipeline, including data preprocessing, "
-        	"model training, evaluation, and deployment using Streamlit."
+			"Disclaimer: This model provides reliable short-term predictions (3–4 years). However, long-term forecasts may be less accurate due to limited historical data and changing market conditions."
 		)
 
 
@@ -269,8 +268,8 @@ def main() -> None:
 	with st.form("prediction_form"):
 		dataset_min_year = int(min(work_year_options))
 		dataset_max_year = int(max(work_year_options))
-		min_selectable_year = dataset_min_year - 20
-		max_selectable_year = dataset_max_year + 20
+		min_selectable_year = dataset_min_year - 5
+		max_selectable_year = dataset_max_year + 5
 		work_year_default = 2023 if 2023 in work_year_options else int(work_year_options[0])
 		left_col, right_col = st.columns(2)
 
@@ -283,7 +282,7 @@ def main() -> None:
 				step=1,
 				help=(
 					f"Use + or - to choose a year from {min_selectable_year} to {max_selectable_year} "
-					f"(dataset range {dataset_min_year}-{dataset_max_year}, extended by +/- 20 years)."
+					f"(dataset range {dataset_min_year}-{dataset_max_year}, extended by +/- 5 years)."
 				),
 			)
 			experience_level = st.selectbox(
@@ -344,7 +343,7 @@ def main() -> None:
 
 		try:
 			predicted_salary = predict_salary(model, sample)
-			st.success(f"Predicted salary: ${predicted_salary:,.2f}")
+			st.success(f"Predicted salary: ${predicted_salary:,.2f} per year")
 			st.dataframe(pd.DataFrame([sample]), use_container_width=True)
 		except Exception as exc:
 			st.error(f"Prediction failed: {exc}")
