@@ -287,58 +287,82 @@ def main() -> None:
 			)
 			experience_level = st.selectbox(
 				"Experience level",
-				VALID_EXPERIENCE_LEVELS,
-				index=2,
-				format_func=lambda code: EXPERIENCE_LEVEL_LABELS.get(code, code),
+				["", *VALID_EXPERIENCE_LEVELS],
+				index=0,
+				format_func=lambda code: "Select experience level" if code == "" else EXPERIENCE_LEVEL_LABELS.get(code, code),
 			)
 			employment_type = st.selectbox(
 				"Employment type",
-				VALID_EMPLOYMENT_TYPES,
-				index=1,
-				format_func=lambda code: EMPLOYMENT_TYPE_LABELS.get(code, code),
+				["", *VALID_EMPLOYMENT_TYPES],
+				index=0,
+				format_func=lambda code: "Select employment type" if code == "" else EMPLOYMENT_TYPE_LABELS.get(code, code),
 			)
-
-		job_title_default_index = job_title_options.index("Data Scientist") if "Data Scientist" in job_title_options else 0
-		employee_residence_default_index = (
-			employee_residence_options.index("US") if "US" in employee_residence_options else 0
-		)
-		company_location_default_index = company_location_options.index("US") if "US" in company_location_options else 0
 
 		with right_col:
-			job_title = st.selectbox("Job title", job_title_options, index=job_title_default_index)
+			job_title = st.selectbox(
+				"Job title",
+				["", *job_title_options],
+				index=0,
+				format_func=lambda title: "Select job title" if title == "" else title,
+			)
 			employee_residence = st.selectbox(
 				"Employee residence (country code)",
-				employee_residence_options,
-				index=employee_residence_default_index,
-				format_func=format_country_code,
+				["", *employee_residence_options],
+				index=0,
+				format_func=lambda code: "Select employee residence" if code == "" else format_country_code(code),
 			)
-			remote_ratio = st.selectbox("Remote ratio", VALID_REMOTE_RATIOS, index=2)
+			remote_ratio = st.selectbox(
+				"Remote ratio",
+				["", *VALID_REMOTE_RATIOS],
+				index=0,
+				format_func=lambda ratio: "Select remote ratio" if ratio == "" else str(ratio),
+			)
 			company_location = st.selectbox(
 				"Company location (country code)",
-				company_location_options,
-				index=company_location_default_index,
-				format_func=format_country_code,
+				["", *company_location_options],
+				index=0,
+				format_func=lambda code: "Select company location" if code == "" else format_country_code(code),
 			)
 			company_size = st.selectbox(
 				"Company size",
-				VALID_COMPANY_SIZES,
-				index=1,
-				format_func=lambda code: COMPANY_SIZE_LABELS.get(code, code),
+				["", *VALID_COMPANY_SIZES],
+				index=0,
+				format_func=lambda code: "Select company size" if code == "" else COMPANY_SIZE_LABELS.get(code, code),
 			)
 
 		submitted = st.form_submit_button("Predict salary")
 
 
 	if submitted:
+		work_year_value = int(work_year)
+
+		default_values = {
+			"experience_level": "SE" if "SE" in VALID_EXPERIENCE_LEVELS else VALID_EXPERIENCE_LEVELS[0],
+			"employment_type": "FT" if "FT" in VALID_EMPLOYMENT_TYPES else VALID_EMPLOYMENT_TYPES[0],
+			"job_title": "Data Scientist" if "Data Scientist" in job_title_options else job_title_options[0],
+			"employee_residence": "US" if "US" in employee_residence_options else employee_residence_options[0],
+			"remote_ratio": 100 if 100 in VALID_REMOTE_RATIOS else VALID_REMOTE_RATIOS[0],
+			"company_location": "US" if "US" in company_location_options else company_location_options[0],
+			"company_size": "M" if "M" in VALID_COMPANY_SIZES else VALID_COMPANY_SIZES[0],
+		}
+
+		experience_level_value = experience_level or default_values["experience_level"]
+		employment_type_value = employment_type or default_values["employment_type"]
+		job_title_value = job_title or default_values["job_title"]
+		employee_residence_value = employee_residence or default_values["employee_residence"]
+		remote_ratio_value = remote_ratio if remote_ratio != "" else default_values["remote_ratio"]
+		company_location_value = company_location or default_values["company_location"]
+		company_size_value = company_size or default_values["company_size"]
+
 		sample = {
-			"work_year": int(work_year),
-			"experience_level": experience_level,
-			"employment_type": employment_type,
-			"job_title": job_title,
-			"employee_residence": employee_residence,
-			"remote_ratio": int(remote_ratio),
-			"company_location": company_location,
-			"company_size": company_size,
+			"work_year": work_year_value,
+			"experience_level": experience_level_value,
+			"employment_type": employment_type_value,
+			"job_title": job_title_value,
+			"employee_residence": employee_residence_value,
+			"remote_ratio": int(remote_ratio_value),
+			"company_location": company_location_value,
+			"company_size": company_size_value,
 		}
 
 		try:
